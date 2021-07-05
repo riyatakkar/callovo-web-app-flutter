@@ -1,11 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jitsi_meet/jitsi_meet.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
-
-import '../variables.dart';
 
 class JoinMeeting extends StatefulWidget {
   @override
@@ -21,41 +18,117 @@ class _JoinMeetingState extends State<JoinMeeting> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    getuserdata();
+    JitsiMeet.addListener(JitsiMeetingListener(
+        onConferenceWillJoin: _onConferenceWillJoin,
+        onConferenceJoined: _onConferenceJoined,
+        onConferenceTerminated: _onConferenceTerminated,
+        onError: _onError));
   }
 
-  getuserdata() async {
-    DocumentSnapshot userdoc =
-        await usercollection.doc(FirebaseAuth.instance.currentUser!.uid).get();
-    setState(() {
-      username = userdoc['username'];
-    });
+  @override
+  void dispose() {
+    super.dispose();
+    JitsiMeet.removeAllListeners();
   }
 
   joinmeeting() async {
-    try {
-      Map<FeatureFlagEnum, bool> featureflags = {
-        FeatureFlagEnum.WELCOME_PAGE_ENABLED: false
+    var options = JitsiMeetingOptions(room: roomcontroller.text)
+      ..serverURL = "https://meet.jit.si"
+      ..webOptions = {
+        "width": "100%",
+        "height": "100%",
+        "userInfo": {
+          "displayName":
+              namecontroller.text == '' ? username : namecontroller.text
+        }
       };
-      var options = JitsiMeetingOptions(room: roomcontroller.text)
-        ..userDisplayName =
-            namecontroller.text == '' ? username : namecontroller.text
-        ..audioMuted = isAudioMuted
-        ..videoMuted = isVideoOff
-        ..featureFlags.addAll(featureflags);
 
-      await JitsiMeet.joinMeeting(options);
-    } catch (e) {
-      print("Error: $e");
-    }
+    debugPrint("JitsiMeetingOptions: $options");
+    await JitsiMeet.joinMeeting(
+      options,
+      listener: JitsiMeetingListener(
+          onConferenceWillJoin: (message) {
+            debugPrint("${options.room} will join with message: $message");
+          },
+          onConferenceJoined: (message) {
+            debugPrint("${options.room} joined with message: $message");
+          },
+          onConferenceTerminated: (message) {
+            debugPrint("${options.room} terminated with message: $message");
+          },
+          genericListeners: [
+            JitsiGenericListener(
+                eventName: 'readyToClose',
+                callback: (dynamic message) {
+                  debugPrint("readyToClose callback");
+                }),
+          ]),
+    );
+  }
+
+  void _onConferenceWillJoin(message) {
+    debugPrint("_onConferenceWillJoin broadcasted with message: $message");
+  }
+
+  void _onConferenceJoined(message) {
+    debugPrint("_onConferenceJoined broadcasted with message: $message");
+  }
+
+  void _onConferenceTerminated(message) {
+    debugPrint("_onConferenceTerminated broadcasted with message: $message");
+  }
+
+  _onError(error) {
+    debugPrint("_onError broadcasted: $error");
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
+    double width = MediaQuery.of(context).size.width;
+    return MaterialApp(
+      home: Scaffold(
+        body: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16.0,
+          ),
+          child: kIsWeb
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: width * 0.30,
+                      child: meetConfig(),
+                    ),
+                    Container(
+                        width: width * 0.60,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Card(
+                              color: Colors.white54,
+                              child: SizedBox(
+                                width: width * 0.60 * 0.70,
+                                height: width * 0.60 * 0.70,
+                                child: JitsiMeetConferencing(
+                                  extraJS: [
+                                    // extraJs setup example
+                                    '<script>function echo(){console.log("echo!!!")};</script>',
+                                    '<script src="https://code.jquery.com/jquery-3.5.1.slim.js" integrity="sha256-DrT5NfxfbHvMHux31Lkhxg42LY6of8TaYyK50jnxRnM=" crossorigin="anonymous"></script>'
+                                  ],
+                                ),
+                              )),
+                        ))
+                  ],
+                )
+              : meetConfig(),
+        ),
+      ),
+    );
+  }
+
+  Widget meetConfig() {
+    return SingleChildScrollView(
+      child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16),
         child: SingleChildScrollView(
           child: Column(
@@ -91,7 +164,7 @@ class _JoinMeetingState extends State<JoinMeeting> {
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   labelText:
-                      "Name (Leave it blank if you want your username as your display name in the meeting)",
+                      "Name (Leave blank if you want your username as your display name)",
                   labelStyle: GoogleFonts.oswald(fontSize: 15),
                 ),
               ),
