@@ -33,6 +33,10 @@ dependencies:
   flutter_custom_clippers:
   image_picker:
   jitsi_meet:
+  jitsi_meet_platform_interface:
+  jitsi_meet_web_plugin:
+  build_runner: ^1.6.2
+  build_web_compilers: ^2.0.0
 
 
   # The following adds the Cupertino Icons font to your application.
