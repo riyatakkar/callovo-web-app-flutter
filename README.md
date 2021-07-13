@@ -30,7 +30,7 @@ Once the web application starts in your browser:
 1. Click on the Sign Up button to create an account.
 2. Enter a username, your email id and a password.
 3. Click on Sign Up. Your account is created and authenticated with Firebase.
-4. Now, click on Sign In button and login using you login credentials.
+4. Now, click on Sign In button and login using your login credentials.
 5. You can change your username to whatever you want as your display name in the profile meeting tab by clicking on 'Edit Username'.
 6. Click on Video Call tab and press the Create Meeting button.
 7. Click on 'Create Code'.
