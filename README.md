@@ -18,7 +18,7 @@ samples, guidance on mobile development, and a full API reference.
 To run this web application, you need:
 1. The latest version of flutter installed(https://flutter.dev/docs/get-started/install/windows)
 2. The latest version of git installed(https://androidaps.readthedocs.io/en/latest/Installing-AndroidAPS/git-install.html)
-3. The latest version of Android Studio (installedhttps://developer.android.com/studio/install)
+3. The latest version of Android Studio installed (https://developer.android.com/studio/install)
 
 Steps to run the web application:
 1. Clone the project from the github repository.
